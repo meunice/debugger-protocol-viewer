@@ -2,33 +2,29 @@ name: 😎
 on:
   pull_request:
   push:
-    branches:    
+    branches:
       - master
-jobs:
-  lighthouse_ci:
+permissions:
+  contents: read
 
+jobs:
+  build_test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: git clone
-        uses: actions/checkout@v1
-        
-      - name: setup node.js
-        uses: actions/setup-node@c6fd00c
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
-          node-version: 10.x
+          node-version-file: '.nvmrc'
+          cache: npm
 
-      - name: build
-        run: npm i && npm run build
+      - run: npm ci
+      - run: npm run build
 
-      - name: install lhci
-        run: npm install @lhci/cli@latest
-        
-      - name: run lhci
-        run: |
-          npx lhci autorun \
-            --collect.url=http://localhost:8696/devtools-protocol/ \
-            --collect.url=http://localhost:8696/devtools-protocol/tot/Page/ \
-            --upload.token=${{ secrets.LHCI_SERVER_TOKEN }} \
-            --upload.serverBaseUrl=https://lhci-canary.herokuapp.com/
+      - name: preflight
+        run: npm run preflight
